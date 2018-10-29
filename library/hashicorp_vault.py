@@ -4,40 +4,43 @@ import requests
 import urlparse
 from ansible.module_utils.basic import *
 
-ANSIBLE_HASHI_VAULT_ADDR = 'http://127.0.0.1:8200'
+ANSIBLE_HASHI_VAULT_ADDR = 'https://vault.devshift.net/v1'
 
 if os.getenv('VAULT_ADDR') is not None:
     ANSIBLE_HASHI_VAULT_ADDR = os.environ['VAULT_ADDR']
 
 def store_secret(fields):
-    header = {
+    headers = {
         'Content-Type': 'application/json',
         'X-Vault-token': fields['token'],
     }
     
     data = {'value': fields['value']}
 
-    api_url = urlparse.urljoin(ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 
-        fields['key'])
-    r = requests.post(api_url, header=header, data=data)
+    api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 
+        fields['key']])
+
+    r = requests.post(api_url, headers=headers, data=json.dumps(data))
+
 
 def get_secret(fields):
-    header = {
+    headers = {
         'X-Vault-token': fields['token'],
     }
     
-    api_url = urlparse.urljoin(ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 
-        fields['key'])
+    api_url = "/".join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 
+        fields['key']])
 
-    r = requests.get(api_url, header=header)
+    r = requests.get(api_url, headers=headers)
+
+    return json.loads(r._content)
+
 
 def approle_login(login_data):
-    api_url = urlparse.urljoin(ANSIBLE_HASHI_VAULT_ADDR, 'auth/approle/login')
-    r = requests.post(api_url, data=login_data)
-    token = r.json()['client_token']
-
-    return token
-
+    api_url = "/".join([ANSIBLE_HASHI_VAULT_ADDR, 'auth/approle/login'])
+    r = requests.post(api_url,  data=json.dumps(login_data))
+    
+    return json.loads(r._content)['auth']['client_token']
 
 def main():
 
