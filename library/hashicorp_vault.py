@@ -42,6 +42,7 @@ def approle_login(login_data):
     
     return json.loads(r._content)['auth']['client_token']
 
+
 def main():
 
     fields = {
@@ -66,7 +67,7 @@ def main():
         get_secret(fields)
     else:
         store_secret(fields)
-
+    
     module.exit_json(changed=True, meta=module.params)
 
 
