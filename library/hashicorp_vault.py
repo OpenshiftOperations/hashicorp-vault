@@ -81,11 +81,12 @@ def main():
     fields['token'] = approle_login(login_data)
 
     if fields['present']:
-        get_secret(fields)
+        value = get_secret(fields)
+        results = {'value':value}
     else:
         store_secret(fields)
     
-    module.exit_json(changed=True, meta=module.params)
+    module.exit_json(changed=True, results)
 
 
 if __name__ == '__main__':
