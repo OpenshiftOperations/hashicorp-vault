@@ -17,6 +17,7 @@ class TestHashicorpVault(unittest.TestCase):
                 "token": "abcd" 
             }
 
+
     @patch('requests.post')
     def test_store_secret(self, mock_post):
         store_secret(self.fields)
@@ -31,6 +32,21 @@ class TestHashicorpVault(unittest.TestCase):
             headers=headers,
             data=json.dumps({'value': self.fields['value']})
             )
+
+
+    @patch('requests.delete')
+    def test_delete_secret(self, mock_delete):
+        delete_secret(self.fields)
+    
+        headers = {
+            'X-Vault-token': self.fields['token'],
+        }
+    
+        mock_delete.assert_called_with(
+            ANSIBLE_HASHI_VAULT_ADDR + '/secret-storage/foo', 
+            headers=headers,
+        )
+
 
     @patch('requests.get')
     def test_get_secret(self, mock_get):

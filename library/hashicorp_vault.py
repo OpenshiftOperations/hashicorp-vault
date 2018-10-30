@@ -4,11 +4,28 @@ import requests
 import urlparse
 from ansible.module_utils.basic import *
 
+''' hashicorp_vault module
+    The purpose of this module is to make calls to the REST api of hashicorp
+    vault
+
+'''
+
 ANSIBLE_HASHI_VAULT_ADDR = 'https://vault.devshift.net/v1'
 
 if os.getenv('VAULT_ADDR') is not None:
     ANSIBLE_HASHI_VAULT_ADDR = os.environ['VAULT_ADDR']
 
+def delete_secret(fields):
+    headers = {
+        'X-Vault-token': fields['token'],
+    }
+    
+    api_url = "/".join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 
+        fields['key']])
+
+    r = requests.delete(api_url, headers=headers)
+
+    
 def store_secret(fields):
     headers = {
         'Content-Type': 'application/json',
