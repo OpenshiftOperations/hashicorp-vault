@@ -11,9 +11,8 @@ from ansible.module_utils.basic import *
 - hosts: localhost
   gather_facts: no
   tasks:
-  - include_role:
+  - import_role:
       name: hashicorp_vault
-    static: true  
   - hashicorp_vault:
       key: "foo"
       value: "bar"
@@ -76,7 +75,7 @@ def approle_login(login_data):
     api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, 'auth/approle/login'])
     r = requests.post(api_url,  data=json.dumps(login_data))
     
-    return json.loads(r._content)['auth']['client_token']
+    return r.json()['auth']['client_token']
 
 
 def main():
