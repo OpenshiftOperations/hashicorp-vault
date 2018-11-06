@@ -28,9 +28,9 @@ class TestHashicorpVault(unittest.TestCase):
         }
     
         mock_post.assert_called_with(
-            ANSIBLE_HASHI_VAULT_ADDR + '/secret-storage/foo', 
+            ANSIBLE_HASHI_VAULT_ADDR + '/secret-storage/data/foo', 
             headers=headers,
-            data=json.dumps({'value': self.fields['value']})
+            data=json.dumps({'data':{'value': self.fields['value']}})
             )
 
 
