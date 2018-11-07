@@ -1,0 +1,14 @@
+galaxy_info:
+  author: Liam Pieri
+  description: Api wrapper for hashicorp vaults K/V version 2 secret engine.
+  company: Red Hat
+
+  license: Apache 2.0
+
+  platforms:
+  - name: Fedora
+    versions:
+    - all
+
+  galaxy_tags: 
+    - hashicorp-vault

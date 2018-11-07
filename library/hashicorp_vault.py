@@ -16,10 +16,10 @@ from ansible.module_utils.basic import *
   - hashicorp_vault:
       key: "foo"
       value: "bar"
-      present: false
-      role_id:
-      secret_id: 
-      mount:  
+      state: false
+      role_id: ""
+      secret_id: ""
+      mount: ""
     register: secret_status 
   - debug:
       msg: "{{ item }}"
@@ -30,32 +30,40 @@ from ansible.module_utils.basic import *
 
 ANSIBLE_HASHI_VAULT_ADDR = 'https://vault.devshift.net/v1'
 
-if os.getenv('VAULT_ADDR') is not None:
-    ANSIBLE_HASHI_VAULT_ADDR = os.environ['VAULT_ADDR']
+# if os.getenv('VAULT_ADDR') is not None:
+#     ANSIBLE_HASHI_VAULT_ADDR = os.environ['VAULT_ADDR']
+
 
 def delete_secret(fields):
+    """
+    Deletes secret (the value of 'name')
+    """
     headers = {
         'X-Vault-token': fields['token'],
     }
     
-    api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 
-        fields['key']])
+    api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
+        fields['name']])
 
     r = requests.delete(api_url, headers=headers)
+
+    return r
 
     
 def store_secret(fields):
     headers = {
-        'Content-Type': 'application/json',
+        #'Content-Type': 'application/json',
         'X-Vault-token': fields['token'],
     }
     
-    data = {'data':{'value': fields['value']}}
+    data = {'data':{fields['key']: fields['value']}}
 
     api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
-        fields['key']])
+        fields['name']])
+    
 
-    r = requests.post(api_url, headers=headers, data=json.dumps(data))
+    r = requests.patch(api_url, headers=headers, data=json.dumps(data))
+    print vars(r)
 
 
 def get_secret(fields):
@@ -63,7 +71,7 @@ def get_secret(fields):
         'X-Vault-token': fields['token'],
     }
     
-    api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 
+    api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
         fields['key']])
 
     r = requests.get(api_url, headers=headers)
@@ -83,9 +91,10 @@ def main():
     fields = {
         'key': {'default': True, 'type': 'str'},
         'value': {'default': True, 'type': 'str'},
-        'present': {'default': True, 'type': 'bool'},
+        'state': {'default': True, 'type': 'bool'},
         'role_id': {'default': True, 'type': 'str'},
         'secret_id': {'default': True, 'type': 'str'},
+        'name': {'default': False, 'type': 'str'},
         'mount': {'default': True, 'type': 'str'}
     }
 
@@ -98,11 +107,12 @@ def main():
 
     token = approle_login(login_data)
     
-    if module.params.get('present'):
+    if module.params.get('state'):
         params = {
             'token': token,
             'key': module.params.get('key'),
-            'mount': module.params.get('mount')
+            'mount': module.params.get('mount'),
+            'name': module.params.get('name')
         }
         value = get_secret(params)
         results = {'value':value}
@@ -111,7 +121,8 @@ def main():
             'token': token,
             'key': module.params.get('key'),
             'value': module.params.get('value'),
-            'mount': module.params.get('mount')
+            'mount': module.params.get('mount'),
+            'name': module.params.get('name')
         }
         store_secret(params)
         results = {'value': 'success'}
