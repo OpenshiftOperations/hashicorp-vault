@@ -69,11 +69,11 @@ def get_secret(fields):
     }
     
     api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
-        fields['key']])
+        fields['name']])
 
     r = requests.get(api_url, headers=headers)
 
-    return json.loads(r._content)
+    return json.loads(r._content)['data']
 
 
 def approle_login(login_data):
