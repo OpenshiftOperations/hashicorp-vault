@@ -104,7 +104,7 @@ def main():
     if module.params.get('state'):
         params = {
             'token': token,
-            'key': module.params.get('key'),
+            'data': module.params.get('data'),
             'mount': module.params.get('mount'),
             'name': module.params.get('name')
         }
@@ -113,8 +113,7 @@ def main():
     else:
         params = {
             'token': token,
-            'key': module.params.get('key'),
-            'value': module.params.get('value'),
+            'data': module.params.get('data'),
             'mount': module.params.get('mount'),
             'name': module.params.get('name')
         }
