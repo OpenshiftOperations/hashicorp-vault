@@ -30,9 +30,6 @@ from ansible.module_utils.basic import *
 
 ANSIBLE_HASHI_VAULT_ADDR = 'https://vault.devshift.net/v1'
 
-if os.getenv('VAULT_ADDR') is not None:
-    ANSIBLE_HASHI_VAULT_ADDR = os.environ['VAULT_ADDR']
-
 
 def delete_secret(fields):
     """
@@ -80,7 +77,7 @@ def get_secret(fields):
 def approle_login(login_data):
     api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, 'auth/approle/login'])
     r = requests.post(api_url,  data=json.dumps(login_data))
-    
+
     return r.json()['auth']['client_token']
 
 
