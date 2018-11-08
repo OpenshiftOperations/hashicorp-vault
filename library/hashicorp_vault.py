@@ -56,8 +56,10 @@ def store_secret(fields):
     api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
         fields['name']])
     
+    data = {'data':fields['data']}
+    print data
     r = requests.post(api_url, headers=headers, 
-                            data=json.dumps(fields['data']))
+                            data=json.dumps(data))
 
     return r
 
