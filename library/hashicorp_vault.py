@@ -30,8 +30,8 @@ from ansible.module_utils.basic import *
 
 ANSIBLE_HASHI_VAULT_ADDR = 'https://vault.devshift.net/v1'
 
-# if os.getenv('VAULT_ADDR') is not None:
-#     ANSIBLE_HASHI_VAULT_ADDR = os.environ['VAULT_ADDR']
+if os.getenv('VAULT_ADDR') is not None:
+    ANSIBLE_HASHI_VAULT_ADDR = os.environ['VAULT_ADDR']
 
 
 def delete_secret(fields):
@@ -55,16 +55,14 @@ def store_secret(fields):
         #'Content-Type': 'application/json',
         'X-Vault-token': fields['token'],
     }
-    
-    data = {'data':{fields['key']: fields['value']}}
 
     api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
         fields['name']])
     
+    r = requests.post(api_url, headers=headers, 
+                            data=json.dumps(fields['data']))
 
-    r = requests.patch(api_url, headers=headers, data=json.dumps(data))
-    print vars(r)
-
+    return r
 
 def get_secret(fields):
     headers = {
@@ -89,13 +87,12 @@ def approle_login(login_data):
 def main():
 
     fields = {
-        'key': {'default': True, 'type': 'str'},
-        'value': {'default': True, 'type': 'str'},
-        'state': {'default': True, 'type': 'bool'},
-        'role_id': {'default': True, 'type': 'str'},
-        'secret_id': {'default': True, 'type': 'str'},
-        'name': {'default': False, 'type': 'str'},
-        'mount': {'default': True, 'type': 'str'}
+        'role_id': {'type': 'str'},
+        'secret_id': {'type': 'str'},
+        'state': {'type': 'bool'},
+        'mount': { 'type': 'str'},
+        'name': {'type': 'str'},
+        'data': {'type': 'dict'},
     }
 
     module = AnsibleModule(argument_spec=fields)
