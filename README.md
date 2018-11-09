@@ -21,8 +21,6 @@ Role Variables
 
 `data`: { `key`: `value` }: K/V data
 
-`state`: present or absent
-
 Dependencies
 ------------
 

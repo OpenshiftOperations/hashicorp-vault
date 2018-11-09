@@ -57,7 +57,6 @@ def store_secret(fields):
         fields['name']])
     
     data = {'data':fields['data']}
-    print data
     r = requests.post(api_url, headers=headers, 
                             data=json.dumps(data))
 
@@ -88,7 +87,7 @@ def main():
     fields = {
         'role_id': {'type': 'str'},
         'secret_id': {'type': 'str'},
-        'state': {'type': 'bool'},
+        'state': {'default': 'present', 'type': 'str'},
         'mount': { 'type': 'str'},
         'name': {'type': 'str'},
         'data': {'type': 'dict'},
@@ -103,24 +102,23 @@ def main():
 
     token = approle_login(login_data)
     
-    if module.params.get('state'):
+    if 'data' in module.params:
         params = {
             'token': token,
-            'data': module.params.get('data'),
-            'mount': module.params.get('mount'),
-            'name': module.params.get('name')
-        }
-        value = get_secret(params)
-        results = {'value':value}
-    else:
-        params = {
-            'token': token,
-            'data': module.params.get('data'),
+            
             'mount': module.params.get('mount'),
             'name': module.params.get('name')
         }
         store_secret(params)
         results = {'value': 'success'}
+    else:
+        params = {
+            'token': token,
+            'mount': module.params.get('mount'),
+            'name': module.params.get('name')
+        }
+        value = get_secret(params)
+        results = {'value':value}
     
     module.exit_json(changed=True, results=results)
 
