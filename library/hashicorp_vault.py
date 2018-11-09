@@ -27,8 +27,6 @@ from ansible.module_utils.basic import json, AnsibleModule
 
 '''
 
-ANSIBLE_HASHI_VAULT_ADDR = 'https://vault.devshift.net/v1'
-
 
 def delete_secret(fields):
     """
@@ -38,7 +36,7 @@ def delete_secret(fields):
         'X-Vault-token': fields['token'],
     }
     
-    api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
+    api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
                         fields['name']])
 
     r = requests.delete(api_url, headers=headers)
@@ -49,7 +47,7 @@ def delete_secret(fields):
 def store_secret(fields):
     headers = {'X-Vault-token': fields['token']}
 
-    api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
+    api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
                         fields['name']])
     
     data = {'data':fields['data']}
@@ -64,7 +62,7 @@ def get_secret(fields):
         'X-Vault-token': fields['token'],
     }
     
-    api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
+    api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
                        fields['name']])
 
     r = requests.get(api_url, headers=headers)
@@ -73,7 +71,7 @@ def get_secret(fields):
 
 
 def approle_login(login_data):
-    api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, 'auth/approle/login'])
+    api_url = '/'.join([login_data['vault_addr'], 'auth/approle/login'])
     r = requests.post(api_url,  data=json.dumps(login_data))
 
     return r.json()['auth']['client_token']
@@ -86,12 +84,16 @@ def main():
         'secret_id': {'type': 'str'},
         'mount': {'type': 'str'},
         'name': {'type': 'str'},
+        'vault_addr': {'type': 'str'},
         'data': {'type': 'dict'}
     }
 
     module = AnsibleModule(argument_spec=fields)
     
+    vault_addr = module.params.get('vault_addr')
+
     login_data = {
+        'vault_addr': vault_addr,
         'role_id': module.params.get('role_id'),
         'secret_id': module.params.get('secret_id')
     }
@@ -100,8 +102,8 @@ def main():
     
     if 'data' in module.params:
         params = {
+            'vault_addr': vault_addr,
             'token': token,
-            
             'mount': module.params.get('mount'),
             'name': module.params.get('name')
         }
@@ -109,6 +111,7 @@ def main():
         results = {'value': 'success'}
     else:
         params = {
+            'vault': vault_addr,
             'token': token,
             'mount': module.params.get('mount'),
             'name': module.params.get('name')
