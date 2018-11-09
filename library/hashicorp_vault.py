@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 import requests
-import urlparse
-from ansible.module_utils.basic import *
+
+from ansible.module_utils.basic import json, AnsibleModule
 
 ''' hashicorp_vault module
     The purpose of this module is to make calls to the REST api of hashicorp
@@ -16,7 +16,6 @@ from ansible.module_utils.basic import *
   - hashicorp_vault:
       key: "foo"
       value: "bar"
-      state: false
       role_id: ""
       secret_id: ""
       mount: ""
@@ -40,7 +39,7 @@ def delete_secret(fields):
     }
     
     api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
-        fields['name']])
+                        fields['name']])
 
     r = requests.delete(api_url, headers=headers)
 
@@ -48,19 +47,17 @@ def delete_secret(fields):
 
     
 def store_secret(fields):
-    headers = {
-        #'Content-Type': 'application/json',
-        'X-Vault-token': fields['token'],
-    }
+    headers = {'X-Vault-token': fields['token']}
 
     api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
-        fields['name']])
+                        fields['name']])
     
     data = {'data':fields['data']}
     r = requests.post(api_url, headers=headers, 
-                            data=json.dumps(data))
+                      data=json.dumps(data))
 
     return r
+
 
 def get_secret(fields):
     headers = {
@@ -68,7 +65,7 @@ def get_secret(fields):
     }
     
     api_url = '/'.join([ANSIBLE_HASHI_VAULT_ADDR, fields['mount'], 'data',
-        fields['name']])
+                       fields['name']])
 
     r = requests.get(api_url, headers=headers)
 
@@ -87,10 +84,9 @@ def main():
     fields = {
         'role_id': {'type': 'str'},
         'secret_id': {'type': 'str'},
-        'state': {'default': 'present', 'type': 'str'},
-        'mount': { 'type': 'str'},
+        'mount': {'type': 'str'},
         'name': {'type': 'str'},
-        'data': {'type': 'dict'},
+        'data': {'type': 'dict'}
     }
 
     module = AnsibleModule(argument_spec=fields)
@@ -118,7 +114,7 @@ def main():
             'name': module.params.get('name')
         }
         value = get_secret(params)
-        results = {'value':value}
+        results = {'value': value}
     
     module.exit_json(changed=True, results=results)
 
