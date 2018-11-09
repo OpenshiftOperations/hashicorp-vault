@@ -1,66 +1,63 @@
 Role Name
 =========
 
-Api wrapper for hashicorp vaults K/V version 2 secret engine.
+API wrapper to manage secrets in Hashicorp Vault's K/V version 2 secret engine.
 
 Requirements
 ------------
 
-Requests python module
+Python `requests`
 
 Role Variables
 --------------
 
-Available variables are listed below.
+`vault_addr`: Vault server address
 
-    role_id
-	secret_id
-	mount
-	name
-	key
-	value
-	state
+`role_id`, `secret_id`: AppRole auth credentials. See [documentation](https://www.vaultproject.io/docs/auth/approle.html) for details on AppRole auth.
 
-`role_id` and `secret_id` are variables that one should generate via vaults cli tool. These are used to get a temporary approle login token.
+`mount`: The mount point for the K/V secret.
 
-`mount` the mountpoint for the K/V secret.
+`name`: secret name.
 
-`name` the name of the secret
+`data`: { `key`: `value` }: K/V data
 
-`key` and `value`, K/V to put into the secret.
-
-`state`  
-
+`state`: present or absent
 
 Dependencies
 ------------
 
-None. 
+None.
 
 Example Playbook
 ----------------
 
-	- hosts: localhost
-	gather_facts: no
-	tasks:
-	- import_role:
-		name: hashicorp_vault
-	- hashicorp_vault:
-		key: "foo"
-		value: "bar"
-		state: false
-		role_id: ""
-		secret_id: ""
-		mount: ""
-		register: secret_status 
-	- debug:
-		msg: "{{ item }}"
-		with_items:
-		- "{{secret_status.results}}"
+Store new or update existing secret with KV pair.
+
+```
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - import_role:
+      name: liamwazherealso.openshift_hashicorp_vault
+  - name: store secret
+    hashicorp_vault:
+      mount: secret
+      name: mysecret
+      data:
+        foo: bar
+      vault_addr: "https://vault-server.com"
+      role_id: "{{ lookup('env','ROLE_ID') }}"
+      secret_id: "{{ lookup('env','SECRET_ID') }}"
+    register: mysecret
+  - debug:
+    msg: "{{ mysecret.results }}"
+```
+
 License
 -------
 
-
+Apache 2.0
 
 Author Information
 ------------------
