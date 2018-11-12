@@ -5,10 +5,30 @@
 Custom filters for accessing HashiCorp Vault
 '''
 
+import json
 import requests 
 
 class FilterModule(object):
     '''Custom ansible filters'''
+
+    @staticmethod
+    def get_secret(fields):
+    headers = {
+        'X-Vault-token': fields['token'],
+    }
+
+    api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
+                       fields['name']])
+
+
+    r = requests.get(api_url, headers=headers)
+
+    if r.status_code == 404:
+        raise SecretNotFoundError()
+
+
+    return json.loads(r._content)['data']
+
 
     @staticmethod
     def approle_login(login_data):
