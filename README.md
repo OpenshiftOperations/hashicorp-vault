@@ -26,7 +26,7 @@ Dependencies
 
 None.
 
-Example Playbook
+Example Playbooks
 ----------------
 
 Store new or update existing secret with KV pair.
@@ -50,6 +50,38 @@ Store new or update existing secret with KV pair.
     register: mysecret
   - debug:
     msg: "{{ mysecret.results }}"
+```
+
+Use filter plugin to store new KV pairs.
+
+```
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    hashicorp_vault_role_id: 
+    hashicorp_vault_secret_id: 
+    hashicorp_vault_addr: 
+
+  tasks:
+    - name: Run the hashicorp_vault role
+      import_role:
+        name: liamwazherealso.openshift_hashicorp_vault
+    - set_fact:
+        fields:
+          role_id: "{{ hashicorp_vault_role_id }}"
+          secret_id: "{{ hashicorp_vault_secret_id }}"
+          vault_addr: "{{ hashicorp_vault_addr }}"
+          mount: 
+          name: 
+          data:
+            key: value 
+        
+    - set_fact:
+        myvar: "{{ fields | store_secret }}"
+
+    - debug:
+        msg: "{{ myvar }}"
 ```
 
 License
