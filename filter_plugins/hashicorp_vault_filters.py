@@ -8,39 +8,39 @@ Custom filters for accessing HashiCorp Vault
 import json
 import requests 
 
+class SecretNotFoundError(Exception):
+    """Exception for when a secret is not found"""
+
 class FilterModule(object):
     '''Custom ansible filters'''
 
-    @staticmethod
-    def get_secret(fields):
-    headers = {
-        'X-Vault-token': fields['token'],
-    }
+    def get_secret(self, fields):
+        headers = {
+            'X-Vault-token': fields['token'],
+        }
 
-    api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
-                       fields['name']])
-
-
-    r = requests.get(api_url, headers=headers)
-
-    if r.status_code == 404:
-        raise SecretNotFoundError()
+        api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
+                           fields['name']])
 
 
-    return json.loads(r._content)['data']
+        r = requests.get(api_url, headers=headers)
+
+        if r.status_code == 404:
+            raise SecretNotFoundError()
 
 
-    @staticmethod
-    def approle_login(login_data):
+        return json.loads(r._content)['data']
+
+
+    def approle_login(self, login_data):
         api_url = '/'.join([login_data['vault_addr'], 'auth/approle/login'])
         r = requests.post(api_url,  data=json.dumps(login_data))
 
         return r.json()['auth']['client_token']
 
-    @staticmethod
-    def store_secret(fields):
+    def store_secret(self, fields):
 
-        fields['token'] = approle_login(fields)
+        fields['token'] = self.approle_login(fields)
 
         headers = {'X-Vault-token': fields['token']}
 
@@ -50,14 +50,14 @@ class FilterModule(object):
         data = {'data': fields['data']}
 
         try:
-            data.update(get_secret(fields)['data'])
+            data['data'].update(self.get_secret(fields)['data'])
         except SecretNotFoundError:
             pass
 
         r = requests.post(api_url, headers=headers, 
                         data=json.dumps(data))
+
         return r.status_code
-        
 
     def filters(self):
         ''' returns a mapping of filters to methods '''

@@ -38,6 +38,37 @@ from ansible.module_utils.basic import json, AnsibleModule
       loop:
         - "{{secret_status.results}}"
       
+--- 
+Filter plugin playbook example
+---
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    hashicorp_vault_role_id: 
+    hashicorp_vault_secret_id: 
+    hashicorp_vault_addr: 
+
+  tasks:
+    - name: Run the hashicorp_vault role
+      import_role:
+        name: liamwazherealso.openshift_hashicorp_vault
+    - set_fact:
+        fields:
+          role_id: "{{ hashicorp_vault_role_id }}"
+          secret_id: "{{ hashicorp_vault_secret_id }}"
+          vault_addr: "{{ hashicorp_vault_addr }}"
+          mount: osd-sre
+          name: crap
+          data:
+            without: mistaken
+        
+    - set_fact:
+        myvar: "{{ fields | store_secret}}"
+
+    - debug:
+        msg: "{{ myvar }}"
+
 
 '''
 
@@ -69,7 +100,7 @@ def store_secret(fields):
     data = {'data': fields['data']}
 
     try:
-        data.update(get_secret(fields)['data'])
+        data['data'].update(get_secret(fields)['data'])
     except SecretNotFoundError:
         pass
 
