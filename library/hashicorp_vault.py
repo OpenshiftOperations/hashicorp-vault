@@ -58,10 +58,10 @@ Filter plugin playbook example
           role_id: "{{ hashicorp_vault_role_id }}"
           secret_id: "{{ hashicorp_vault_secret_id }}"
           vault_addr: "{{ hashicorp_vault_addr }}"
-          mount: osd-sre
-          name: crap
+          mount: 
+          name: 
           data:
-            without: mistaken
+            key: value 
         
     - set_fact:
         myvar: "{{ fields | store_secret}}"
