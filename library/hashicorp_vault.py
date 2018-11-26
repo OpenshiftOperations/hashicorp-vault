@@ -43,21 +43,6 @@ from ansible.module_utils.basic import json, AnsibleModule
 class SecretNotFoundError(Exception):
     """Exception for when a secret is not found"""
 
-def delete_secret(fields):
-    """
-    Deletes secret (the value of 'name')
-    """
-    headers = {
-        'X-Vault-token': fields['token'],
-    }
-    
-    api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
-                        fields['name']])
-
-    r = requests.delete(api_url, headers=headers)
-
-    return r
-
     
 def store_secret(fields):
     headers = {'X-Vault-token': fields['token']}
