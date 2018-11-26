@@ -6,6 +6,7 @@ Custom filters for accessing HashiCorp Vault
 '''
 
 import json
+import copy
 import requests 
 
 class SecretNotFoundError(Exception):
@@ -60,7 +61,7 @@ class FilterModule(object):
             raise SecretNotFoundError()
 
 
-        return json.loads(r._content)['data']
+        return json.loads(r._content)['data']['data']
 
 
     def approle_login(self, login_data):
@@ -77,18 +78,26 @@ class FilterModule(object):
 
         api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
                             fields['name']])
-        
-        data = {'data': fields['data']}
 
-        try:
-            data['data'].update(self.get_secret(fields)['data'])
-        except SecretNotFoundError:
-            pass
+        fdata = fields['data']
+        if fdata:
+            try:
+                data = self.get_secret(fields)
+                data.update(fdata)
 
-        r = requests.post(api_url, headers=headers, 
-                        data=json.dumps(data))
+            except SecretNotFoundError:
+                data = fdata
 
-        return r.status_code
+            data = {'data': data}
+            r = requests.post(api_url, headers=headers, 
+                            data=json.dumps(data))
+            return data
+        else:
+            try:
+                return self.get_secret(fields)
+            except SecretNotFoundError as e:
+                raise e
+
 
     def filters(self):
         ''' returns a mapping of filters to methods '''

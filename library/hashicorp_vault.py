@@ -75,11 +75,7 @@ def store_secret(fields):
     r = requests.post(api_url, headers=headers, 
                     data=json.dumps(data))
     return r
-    
 
-    
-
-    # Secret exists so update only new data
 
 def get_secret(fields):
     headers = {
@@ -96,7 +92,7 @@ def get_secret(fields):
         raise SecretNotFoundError()
 
 
-    return json.loads(r._content)['data']
+    return json.loads(r._content)['data']['data']
 
 
 def approle_login(login_data):
