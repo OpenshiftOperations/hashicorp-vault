@@ -49,17 +49,22 @@ def store_secret(fields):
 
     api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
                         fields['name']])
-    
-    data = {'data': fields['data']}
 
-    try:
-        data['data'].update(get_secret(fields)['data'])
-    except SecretNotFoundError:
-        pass
+    if 'data' in fields:
+        fdata = fields['data'] 
+        try:
+            data = get_secret(fields)
+            data.update(fdata)
 
-    r = requests.post(api_url, headers=headers, 
-                    data=json.dumps(data))
-    return r
+        except SecretNotFoundError:
+            data = fdata
+
+        data = {'data': data}
+        r = requests.post(api_url, headers=headers, 
+                        data=json.dumps(data))
+        return data
+    else:
+        return {'data': get_secret(fields)}
 
 
 def get_secret(fields):
@@ -121,7 +126,7 @@ def main():
             'data': data
         }
         store_secret(params)
-        results = {'value': 'success'}
+        results = {'data': data}
     else:
         params = {
             'vault_addr': vault_addr,
@@ -129,8 +134,7 @@ def main():
             'mount': module.params.get('mount'),
             'name': module.params.get('name')
         }
-        value = get_secret(params)
-        results = {'value': value}
+        results = {'data':  get_secret(params)}
     
     module.exit_json(changed=True, results=results)
 
