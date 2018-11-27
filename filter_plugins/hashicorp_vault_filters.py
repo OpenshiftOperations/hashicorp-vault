@@ -79,8 +79,8 @@ class FilterModule(object):
         api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
                             fields['name']])
 
-        fdata = fields['data']
-        if fdata:
+        if 'data' in fields:
+            fdata = fields['data'] 
             try:
                 data = self.get_secret(fields)
                 data.update(fdata)
@@ -93,10 +93,8 @@ class FilterModule(object):
                             data=json.dumps(data))
             return data
         else:
-            try:
-                return self.get_secret(fields)
-            except SecretNotFoundError as e:
-                raise e
+            return {'data': self.get_secret(fields)}
+
 
 
     def filters(self):
