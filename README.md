@@ -29,7 +29,7 @@ None.
 Example Playbooks
 ----------------
 
-Store new or update existing secret with KV pair.
+Using the module to store new or update existing secret with KV pairs.
 
 ```
 ---
@@ -51,7 +51,26 @@ Store new or update existing secret with KV pair.
   - debug:
     msg: "{{ mysecret.results }}"
 ```
+Using the module to get existing secrets with the module. 
 
+```
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - import_role:
+      name: liamwazherealso.openshift_hashicorp_vault
+  - name: get secret
+    hashicorp_vault:
+      mount: secret
+      name: mysecret
+      vault_addr: "https://vault-server.com"
+      role_id: "{{ lookup('env','ROLE_ID') }}"
+      secret_id: "{{ lookup('env','SECRET_ID') }}"
+    register: mysecret
+  - debug:
+    msg: "{{ mysecret.results }}"
+```
 Use filter plugin to store new KV pairs.
 
 ```
@@ -83,7 +102,34 @@ Use filter plugin to store new KV pairs.
     - debug:
         msg: "{{ myvar }}"
 ```
+Use filter plugins to get existings secret
+```
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    hashicorp_vault_role_id: 
+    hashicorp_vault_secret_id: 
+    hashicorp_vault_addr: 
 
+  tasks:
+    - name: Run the hashicorp_vault role
+      import_role:
+        name: liamwazherealso.openshift_hashicorp_vault
+    - set_fact:
+        fields:
+          role_id: "{{ hashicorp_vault_role_id }}"
+          secret_id: "{{ hashicorp_vault_secret_id }}"
+          vault_addr: "{{ hashicorp_vault_addr }}"
+          mount: 
+          name: 
+        
+    - set_fact:
+        myvar: "{{ fields | store_secret }}"
+
+    - debug:
+        msg: "{{ myvar }}"
+```
 License
 -------
 
