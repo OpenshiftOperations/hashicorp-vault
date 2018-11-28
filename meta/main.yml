@@ -11,5 +11,6 @@ galaxy_info:
     - all
 
   min_ansible_version: 2.4
-  galaxy_tags: 
-    - hashicorp_vault
+  galaxy_tags:
+    - hashicorp
+    - vault
