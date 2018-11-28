@@ -15,35 +15,33 @@ class SecretNotFoundError(Exception):
 class FilterModule(object):
     '''Custom ansible filters
     
-    --- 
-    Example
     ---
     - hosts: localhost
     gather_facts: no
-    vars:
-        hashicorp_vault_role_id: 
-        hashicorp_vault_secret_id: 
-        hashicorp_vault_addr: 
-
     tasks:
-        - name: Run the hashicorp_vault role
-        import_role:
-            name: liamwazherealso.openshift_hashicorp_vault
-        - set_fact:
-            fields:
-            role_id: "{{ hashicorp_vault_role_id }}"
-            secret_id: "{{ hashicorp_vault_secret_id }}"
-            vault_addr: "{{ hashicorp_vault_addr }}"
-            mount: 
-            name: 
-            data:
-                key: value 
-            
-        - set_fact:
-            myvar: "{{ fields | store_secret}}"
-
-        - debug:
-            msg: "{{ myvar }}"    
+    - import_role:
+        name: openshiftoperations.hashicorp_vault
+    - set_fact:
+        vault_defaults:
+            role_id: "{{ lookup('env','ROLE_ID') }}"
+            secret_id: "{{ lookup('env','SECRET_ID') }}"
+            vault_addr: "https://myvault.example.com/v1"
+            mount: mysecretnamespace
+    - name: store secret
+        hashicorp_vault:
+        mount: "{{ vault_defaults.mount }}"
+        vault_addr: "{{ vault_defaults.vault_addr }}"
+        role_id: "{{ vault_defaults.role_id }}"
+        secret_id: "{{ vault_defaults.secret_id }}"
+        name: mysecret
+        data:
+            foo: bar
+            bar: foo
+        register: mysecret
+    - set_fact:
+        secrets: "{{ vault_defaults | combine({'name': 'yoursecret'}) | get_secret}}"
+    - debug:
+        msg: "This is your secret: {{ secrets.data.yoursecret }
     '''
 
     def get_secret(self, fields):
@@ -69,7 +67,7 @@ class FilterModule(object):
         r = requests.post(api_url,  data=json.dumps(login_data))
 
         return r.json()['auth']['client_token']
-
+ 
 
     def filters(self):
         ''' returns a mapping of filters to methods '''
