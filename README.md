@@ -19,7 +19,7 @@ Role Variables
 
 `name`: secret name.
 
-`data`: { `key`: `value` }: K/V data
+`data: { 'key': 'value' }`: K/V data
 
 Dependencies
 ------------
@@ -29,7 +29,7 @@ None.
 Example Playbooks
 ----------------
 
-Using the module to store new or update existing secret with KV pairs.
+Using the module to store new or update existing secret with KV pairs. Existing KV pairs are not deleted.
 
 ```
 ---
@@ -37,19 +37,20 @@ Using the module to store new or update existing secret with KV pairs.
   gather_facts: no
   tasks:
   - import_role:
-      name: openshiftoperations.hashicorp_vault
+      name: openshift.hashicorp_vault
   - name: store secret
     hashicorp_vault:
       mount: secret
       name: mysecret
       data:
         foo: bar
+        bar: foo
       vault_addr: "https://vault-server.com"
       role_id: "{{ lookup('env','ROLE_ID') }}"
       secret_id: "{{ lookup('env','SECRET_ID') }}"
     register: mysecret
   - debug:
-    msg: "{{ mysecret.results }}"
+      msg: "{{ mysecret.results }}"
 ```
 Using the module to get existing secrets with the module. 
 
@@ -59,7 +60,7 @@ Using the module to get existing secrets with the module.
   gather_facts: no
   tasks:
   - import_role:
-      name: openshiftoperations.hashicorp_vault
+      name: openshift.hashicorp_vault
   - name: get secret
     hashicorp_vault:
       mount: secret
@@ -69,38 +70,27 @@ Using the module to get existing secrets with the module.
       secret_id: "{{ lookup('env','SECRET_ID') }}"
     register: mysecret
   - debug:
-    msg: "{{ mysecret.results }}"
+      msg: "{{ mysecret.results }}"
 ```
 
-Use filter plugins to get existings secret
+Use filter plugin to get existing secret
 ```
 ---
 - hosts: localhost
   gather_facts: no
   tasks:
   - import_role:
-      name: openshiftoperations.hashicorp_vault
+      name: openshift.hashicorp_vault
   - set_fact:
       vault_defaults:
         role_id: "{{ lookup('env','ROLE_ID') }}"
         secret_id: "{{ lookup('env','SECRET_ID') }}"
         vault_addr: "https://myvault.example.com/v1"
         mount: mysecretnamespace
-  - name: store secret
-    hashicorp_vault:
-      mount: "{{ vault_defaults.mount }}"
-      vault_addr: "{{ vault_defaults.vault_addr }}"
-      role_id: "{{ vault_defaults.role_id }}"
-      secret_id: "{{ vault_defaults.secret_id }}"
-      name: mysecret
-      data:
-        foo: bar
-        bar: foo
-    register: mysecret
   - set_fact:
       secrets: "{{ vault_defaults | combine({'name': 'yoursecret'}) | get_secret}}"
   - debug:
-      msg: "This is your secret: {{ secrets.data.yoursecret }
+      msg: "This is your secret: {{ secrets.yoursecret }
 ```
 License
 -------
