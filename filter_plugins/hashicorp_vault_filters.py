@@ -48,7 +48,7 @@ class FilterModule(object):
 
     def get_secret(self, fields):
         headers = {
-            'X-Vault-token': fields['token'],
+            'X-Vault-token': self.approle_login(fields),
         }
 
         api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
@@ -70,35 +70,9 @@ class FilterModule(object):
 
         return r.json()['auth']['client_token']
 
-    def store_secret(self, fields):
-
-        fields['token'] = self.approle_login(fields)
-
-        headers = {'X-Vault-token': fields['token']}
-
-        api_url = '/'.join([fields['vault_addr'], fields['mount'], 'data',
-                            fields['name']])
-
-        if 'data' in fields:
-            fdata = fields['data'] 
-            try:
-                data = self.get_secret(fields)
-                data.update(fdata)
-
-            except SecretNotFoundError:
-                data = fdata
-
-            data = {'data': data}
-            r = requests.post(api_url, headers=headers, 
-                            data=json.dumps(data))
-            return data
-        else:
-            return {'data': self.get_secret(fields)}
-
-
 
     def filters(self):
         ''' returns a mapping of filters to methods '''
         return {
-            "store_secret": self.store_secret,
+            "get_secret": self.get_secret,
         }
